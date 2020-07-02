@@ -5,7 +5,7 @@ namespace Prodavay\GraylogTestBundle\Service;
 use Gelf\Publisher;
 use Gelf\Transport\UdpTransport;
 use Monolog\Handler\GelfHandler;
-use Monolog\Logger as MonologLogger;
+
 
 class Logger extends MonologLogger
 {

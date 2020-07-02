@@ -2,35 +2,39 @@
 
 namespace Prodavay\GraylogTestBundle\Service;
 
+use Gelf\Publisher;
+use Gelf\Transport\UdpTransport;
 use GuzzleHttp\Client;
+use Monolog\Handler\GelfHandler;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
+use Monolog\Logger as MonologLogger;
 
-class LogService
+class LogService extends MonologLogger
 {
     /**
-     * @var Logger
+     * @param  string  $loggerHost
+     * @param  string  $loggerPort
+     * @param  string  $loggerName
+     * @param  array   $handlers
+     * @param  array   $processors
      */
-    private $logger;
+    public function __construct(
+        string $loggerHost,
+        string $loggerPort,
+        string $loggerName,
+        array $handlers = [],
+        array $processors = []
+    ) {
+        parent::__construct($loggerName, $handlers, $processors);
 
-    /**
-     * @var string
-     */
-    private $environment;
-
-    /**
-     * Разрешенное окружение для записи
-     */
-    private const PROHIBITED_ENVIRONMENT = 'prod';
-
-    /**
-     * @param Logger $logger
-     * @param string $environment
-     */
-    public function __construct(Logger $logger, string $environment)
-    {
-        $this->logger = $logger;
-        $this->environment = $environment;
+        $this->pushHandler(
+            new GelfHandler(
+                new Publisher(
+                    new UdpTransport($loggerHost, $loggerPort)
+                )
+            )
+        );
     }
 
     /**
@@ -54,7 +58,7 @@ class LogService
         $responseBody = $this->decodeUnicode($responseBody);
 
         try {
-            $this->logger->info(
+            $this->info(
                 'placeholder',
                 [
                     'request' => [
@@ -108,7 +112,7 @@ class LogService
         ?bool $success = false
     ): bool {
         try {
-            $this->logger->info(
+            $this->info(
                 'placeholder',
                 [
                     'request' => [
@@ -132,23 +136,6 @@ class LogService
     }
 
     /**
-     * @param array $log
-     *
-     * @return bool
-     */
-    public function writeAtolApiLog(array $log): bool
-    {
-        try {
-            $this->logger->info('placeholder', $log);
-
-            return true;
-        } catch (RuntimeException $exception) {
-            // Обработка ошибки подключения к хосту логгера
-            return false;
-        }
-    }
-
-    /**
      * @param string $string
      *
      * @return bool
@@ -156,23 +143,6 @@ class LogService
     private function isJson(string $string): bool
     {
         return (is_string($string) && (is_object(json_decode($string))));
-    }
-
-    /**
-     * @param string $log
-     *
-     * @return bool
-     */
-    public function writeTestLog(string $log): bool
-    {
-        $this->logger->info(
-            'placeholder',
-            [
-                'step' => $log,
-            ]
-        );
-
-        return true;
     }
 
     /**
@@ -194,7 +164,7 @@ class LogService
         ?array $responseBody
     ): bool {
         try {
-            $this->logger->info(
+            $this->info(
                 'placeholder',
                 [
                     'request' => [
@@ -218,109 +188,6 @@ class LogService
     }
 
     /**
-     * @param array  $oldSchedules
-     * @param array  $newSchedules
-     * @param string $search
-     *
-     * @return bool
-     */
-    public function writeGrabOnesLog(
-        array $oldSchedules,
-        array $newSchedules,
-        string $search
-    ): bool {
-        try {
-            $this->logger->info(
-                'placeholder',
-                [
-                    'search_string' => $search,
-                    'old_schedules' => $oldSchedules,
-                    'new_schedules' => $newSchedules,
-                ]
-            );
-
-            return true;
-        } catch (RuntimeException $exception) {
-            // Обработка ошибки подключения к хосту логгера
-            return false;
-        }
-    }
-
-//    /**
-//     * @param User        $user
-//     * @param int         $merchantId
-//     * @param Rate        $newRate
-//     * @param Rate | null $oldRate
-//     *
-//     * @return bool
-//     */
-//    public function writeRateLog(
-//        User $user,
-//        int $merchantId,
-//        ?Rate $newRate = null,
-//        Rate $oldRate = null
-//    ): bool {
-//        try {
-//            return $this->logger->addInfo('placeholder', [
-//                'search_string' => "Изменение тарифа мерча $merchantId",
-//                'user' => [
-//                    'id' => $user->getId(),
-//                    'name' => $user->getFullName(),
-//                    'phone' => $user->getPhone()->getValue(),
-//                ],
-//                'new_rate' => empty($newRate) ? [] : $this->getRateData($newRate),
-//                'old_rate' => empty($oldRate) ? [] : $this->getRateData($oldRate),
-//            ]);
-//        } catch (RuntimeException $exception) {
-//            // Обработка ошибки подключения к хосту логгера
-//            return false;
-//        }
-//    }
-
-//    /**
-//     * @param Rate $rate
-//     *
-//     * @return array
-//     */
-//    private function getRateData(Rate $rate): array
-//    {
-//        return [
-//            'activation_date' => $rate->getActivationDate()->format('Y-m-d'),
-//            'deactivation_date' => empty($rate->getDeactivationDate()) ? null : $rate->getDeactivationDate()->format('Y-m-d'),
-//            'default' => $rate->isDefault(),
-//            'name' => $rate->getName(),
-//            'type' => $rate->getRateType()->getName(),
-//            'three_month_discount' => $rate->getThreeMonthDiscount(),
-//            'six_month_discount' => $rate->getSixMonthDiscount(),
-//        ];
-//    }
-
-    /**
-     * @param array  $schedules
-     * @param string $search
-     *
-     * @return bool
-     */
-    public function writeScheduleLog(array $schedules, string $search): bool
-    {
-        if (self::PROHIBITED_ENVIRONMENT !== $this->environment) {
-            return false;
-        }
-
-        try {
-            $this->logger->info('placeholder', [
-                'search_string' => $search,
-                'schedules' => $schedules,
-            ]);
-
-            return true;
-        } catch (RuntimeException $exception) {
-            // Обработка ошибки подключения к хосту логгера
-            return false;
-        }
-    }
-
-    /**
      * @param string $smtpLog
      *
      * @return bool
@@ -328,7 +195,7 @@ class LogService
     public function writeSmtpLog(string $smtpLog): bool
     {
         try {
-            $this->logger->info('placeholder', ['smtpLog' => $smtpLog]);
+            $this->info('placeholder', ['smtpLog' => $smtpLog]);
 
             return true;
         } catch (RuntimeException $exception) {
@@ -346,7 +213,7 @@ class LogService
     public function writeFirebaseLog(string $firebaseLog): bool
     {
         try {
-            $this->logger->info('placeholder', ['firebasePushLog' => $firebaseLog]);
+            $this->info('placeholder', ['firebasePushLog' => $firebaseLog]);
 
             return true;
         } catch (RuntimeException $exception) {
