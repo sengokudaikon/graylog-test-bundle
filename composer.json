@@ -1,0 +1,58 @@
+{
+  "name": "prodavay/graylog-test-bundle",
+  "type": "symfony-bundle",
+  "description": "Test bundle for Graylog",
+  "keywords": ["test"],
+  "homepage": "https://github.com/sengokudaikon/graylog-test-bundle",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Daniel Zavrin",
+      "email": "test@test.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "symfony/framework-bundle": ">=5.0",
+    "symfony/yaml": ">=5.0",
+    "symfony/monolog-bundle": ">=3.0",
+    "graylog2/gelf-php": "^1.6.5",
+    "guzzlehttp/guzzle": "^7.0.1",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "symfony/phpunit-bridge": ">=5.0"
+  },
+  "config": {
+    "platform": {
+      "php": "7.2.30"
+    },
+    "preferred-install": {
+      "*": "dist"
+    },
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "Prodavay\\GraylogTestBundle\\": ""
+    },
+    "exclude-from-classmap": [
+      "/Tests/"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Prodavay\\GraylogTestBundle\\Tests\\": "tests/"
+    }
+  },
+  "conflict": {
+    "symfony/symfony": "<5.0"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.1.x-dev"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
