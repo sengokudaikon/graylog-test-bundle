@@ -11,8 +11,8 @@
     <services>
         <!-- LogService -->
         <service id="prodavay_graylog_test.service" class="Prodavay\GraylogTestBundle\Service\LogService">
-            <argument key="$host" type="string">%prodavay_graylog_test.host%</argument>
-            <argument key="$port" type="string">%prodavay_graylog_test.port%</argument>
+            <argument key="$loggerHost" type="string">%prodavay_graylog_test.host%</argument>
+            <argument key="$loggerPort" type="string">%prodavay_graylog_test.port%</argument>
         </service>
 
         <service id="Prodavay\GraylogTestBundle\Service\LogService" alias="prodavay_graylog_test.service" />
