@@ -56,12 +56,13 @@ class LogService extends MonologLogger
         array $headers = []
     ): bool {
         $responseBody = $this->decodeUnicode($responseBody);
-
+        $method = $client->getConfig('method');
         try {
             $this->info(
                 'placeholder',
                 [
                     'request' => [
+                        'method'=> $method,
                         'url' => "{$client->getConfig('base_uri')}$uri",
                         'headers' => array_merge($headers, $client->getConfig('headers')),
                         'body' => $body,
@@ -82,19 +83,48 @@ class LogService extends MonologLogger
     }
 
     /**
-     * @param $string
+     * @param  string        $method
+     * @param  string        $uri
+     * @param  array         $requestHeaders
+     * @param  array | null  $requestBody
+     * @param  array         $responseHeaders
+     * @param  int           $httpCode
+     * @param  array | null  $responseBody
      *
-     * @return string
+     * @return bool
      */
-    private function decodeUnicode($string): string
-    {
-        return preg_replace_callback(
-            '/\\\\u([0-9a-fA-F]{4})/',
-            function (array $match): string {
-                return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
-            },
-            $string
-        );
+    public function writeApiLog(
+        string $method,
+        string $uri,
+        array $requestHeaders,
+        ?array $requestBody,
+        array $responseHeaders,
+        int $httpCode,
+        ?array $responseBody
+    ): bool {
+        try {
+            $this->info(
+                'placeholder',
+                [
+                    'request' => [
+                        'method' => $method,
+                        'url' => $uri,
+                        'headers' => $requestHeaders,
+                        'body' => $requestBody,
+                    ],
+                    'response' => [
+                        'code' => $httpCode,
+                        'headers' => $responseHeaders,
+                        'body' => $responseBody,
+                    ],
+                ]
+            );
+
+            return true;
+        } catch (RuntimeException $exception) {
+            // Обработка ошибки подключения к хосту логгера
+            return false;
+        }
     }
 
     /**
@@ -124,58 +154,6 @@ class LogService extends MonologLogger
                     ],
                     'response' => [
                         'success' => $success
-                    ],
-                ]
-            );
-
-            return true;
-        } catch (RuntimeException $exception) {
-            // Обработка ошибки подключения к хосту логгера
-            return false;
-        }
-    }
-
-    /**
-     * @param string $string
-     *
-     * @return bool
-     */
-    private function isJson(string $string): bool
-    {
-        return (is_string($string) && (is_object(json_decode($string))));
-    }
-
-    /**
-     * @param  string      $uri
-     * @param  array       $requestHeaders
-     * @param  array | null  $requestBody
-     * @param  array       $responseHeaders
-     * @param  int         $httpCode
-     * @param  array | null  $responseBody
-     *
-     * @return bool
-     */
-    public function writeApiLog(
-        string $uri,
-        array $requestHeaders,
-        ?array $requestBody,
-        array $responseHeaders,
-        int $httpCode,
-        ?array $responseBody
-    ): bool {
-        try {
-            $this->info(
-                'placeholder',
-                [
-                    'request' => [
-                        'url' => $uri,
-                        'headers' => $requestHeaders,
-                        'body' => $requestBody,
-                    ],
-                    'response' => [
-                        'code' => $httpCode,
-                        'headers' => $responseHeaders,
-                        'body' => $responseBody,
                     ],
                 ]
             );
@@ -219,5 +197,31 @@ class LogService extends MonologLogger
         } catch (RuntimeException $exception) {
             return false;
         }
+    }
+
+    /**
+     * @param $string
+     *
+     * @return string
+     */
+    private function decodeUnicode($string): string
+    {
+        return preg_replace_callback(
+            '/\\\\u([0-9a-fA-F]{4})/',
+            function (array $match): string {
+                return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
+            },
+            $string
+        );
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return bool
+     */
+    private function isJson(string $string): bool
+    {
+        return (is_string($string) && (is_object(json_decode($string))));
     }
 }
