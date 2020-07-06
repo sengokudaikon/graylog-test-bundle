@@ -22,7 +22,7 @@ class LogService extends MonologLogger
     public function __construct(
         string $loggerHost,
         string $loggerPort,
-        string $loggerName,
+        string $loggerName = 'pos-logger',
         array $handlers = [],
         array $processors = []
     ) {
