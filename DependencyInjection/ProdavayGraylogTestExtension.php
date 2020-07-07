@@ -15,9 +15,8 @@ class ProdavayGraylogTestExtension extends Extension
         $loader->load('services.xml');
         $config = $this->processConfiguration(new Configuration(), $configs);
 
-        $def = $container->getDefinition('prodavay_graylog_test.service');
-        $def->replaceArgument('$loggerHost', $config['host']);
-        $def->replaceArgument('$loggerPort', $config['port']);
+        $container->setParameter('prodavay_graylog_test.host', $config['host']);
+        $container->setParameter('prodavay_graylog_test.port', $config['port']);
     }
 
     public function getAlias()
