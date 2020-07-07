@@ -182,7 +182,6 @@ class LogService extends MonologLogger
         }
     }
 
-
     /**
      * @param string $firebaseLog
      *
